@@ -1,3 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pollution Classification Demo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background: #f4f4f4;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 500px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    button {
+      margin-top: 15px;
+      padding: 10px 15px;
+      cursor: pointer;
+    }
+
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #eee;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Pollution Classification Engine</h2>
+  <button onclick="runTest()">Run Test Case</button>
+
+  <div class="result" id="output"></div>
+</div>
+
+<script>
 function classifyStation(input) {
   const {
     aqi,
@@ -11,9 +58,6 @@ function classifyStation(input) {
     farmInfluenceIndex
   } = input;
 
-  // -----------------------------
-  // HELPER FACTORS
-  // -----------------------------
   const distanceFactor = Math.max(0, 1 - industrialDistance / 10);
   const citizenFactor = Math.min(citizenReportCount / 5, 1);
   const lowTrafficFactor = 1 - trafficIndex;
@@ -21,42 +65,23 @@ function classifyStation(input) {
   const no2Factor = Math.min(no2 / (pm25 + 1), 1);
   const farmFactor = Math.min(farmInfluenceIndex, 1);
 
-  // -----------------------------
-  // INDUSTRIAL SCORE
-  // -----------------------------
   let industrialScore = 0;
-
   if (aqi > 200) industrialScore += 30;
   industrialScore += 30 * distanceFactor;
   industrialScore += 20 * citizenFactor;
   industrialScore += 10 * lowTrafficFactor;
 
-  // -----------------------------
-  // VEHICULAR SCORE
-  // -----------------------------
   let vehicularScore = 0;
-
   vehicularScore += 50 * trafficIndex;
   vehicularScore += 30 * no2Factor;
 
-  // -----------------------------
-  // REGIONAL (NON-FARM)
-  // -----------------------------
   let regionalScore = 0;
-
   regionalScore += 50 * spreadFactor;
 
-  // -----------------------------
-  // FARM / AGRICULTURAL BURNING
-  // -----------------------------
   let farmScore = 0;
-
   farmScore += 40 * farmFactor;
   farmScore += 30 * spreadFactor;
 
-  // -----------------------------
-  // WIND MODIFIER
-  // -----------------------------
   if (windSpeed < 1) {
     industrialScore *= 0.6;
     regionalScore *= 0.8;
@@ -64,9 +89,6 @@ function classifyStation(input) {
     vehicularScore += 10;
   }
 
-  // -----------------------------
-  // CLASSIFICATION
-  // -----------------------------
   const scores = {
     industrialScore,
     vehicularScore,
@@ -97,14 +119,10 @@ function classifyStation(input) {
   }
 
   let confidence = 0;
-
-if (topScore > 0) {
-  confidence = ((topScore - secondScore) / topScore) * 100;
-}
-
-confidence = Math.max(0, Math.min(100, confidence));
-
-
+  if (topScore > 0) {
+    confidence = ((topScore - secondScore) / topScore) * 100;
+  }
+  confidence = Math.max(0, Math.min(100, confidence));
 
   return {
     industrialScore: Math.round(industrialScore),
@@ -116,16 +134,31 @@ confidence = Math.max(0, Math.min(100, confidence));
   };
 }
 
-const testStation = {
-  aqi: 320,
-  pm25: 210,
-  no2: 40,
-  windSpeed: 3,
-  industrialDistance: 1,
-  trafficIndex: 0.2,
-  nearbyStationSpikeCount: 1,
-  citizenReportCount: 5,
-  farmInfluenceIndex: 0.1
-};
+function runTest() {
+  const testStation = {
+    aqi: 300,
+    pm25: 200,
+    no2: 50,
+    windSpeed: 3,
+    industrialDistance: 2,
+    trafficIndex: 0.3,
+    nearbyStationSpikeCount: 4,
+    citizenReportCount: 3,
+    farmInfluenceIndex: 0.6
+  };
 
-console.log(classifyStation(testStation));
+  const result = classifyStation(testStation);
+
+  document.getElementById("output").innerHTML = `
+    <strong>Classification:</strong> ${result.label}<br>
+    <strong>Confidence:</strong> ${result.confidence}%<br><br>
+    Industrial Score: ${result.industrialScore}<br>
+    Vehicular Score: ${result.vehicularScore}<br>
+    Regional Score: ${result.regionalScore}<br>
+    Farm Score: ${result.farmScore}
+  `;
+}
+</script>
+
+</body>
+</html>
