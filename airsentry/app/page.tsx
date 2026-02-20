@@ -1,65 +1,176 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+
+const MapView = dynamic(() => import("@/components/MapView"), {
+  ssr: false,
+});
 
 export default function Home() {
+  const [data, setData] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchData = () => {
+      fetch("/api/events")
+        .then((res) => res.json())
+        .then((result) => setData(result));
+    };
+
+    fetchData();
+    const interval = setInterval(fetchData, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  if (!data) {
+    return <div style={{ padding: 60 }}>Loading AirSentry...</div>;
+  }
+
+  const classification = data.classification;
+  const spike = data.spike;
+
+  const spikeRatio = spike?.rollingAverage
+    ? (data.currentAQI / spike.rollingAverage).toFixed(2)
+    : null;
+
+  const labelColor =
+    classification.label === "Likely Industrial"
+      ? "#ff4d4d"
+      : classification.label === "Likely Vehicular"
+      ? "#ff9900"
+      : classification.label === "Likely Regional Transport"
+      ? "#00b3ff"
+      : classification.label === "Likely Agricultural Burning"
+      ? "#cc00ff"
+      : "#ffffff";
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <main
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(to bottom, #0f2027, #203a43, #2c5364)",
+        padding: "40px 60px",
+        color: "white",
+        fontFamily: "Inter, Arial, sans-serif",
+      }}
+    >
+      {/* Header */}
+      <div style={{ marginBottom: 40 }}>
+        <h1 style={{ fontSize: 38, marginBottom: 5 }}>AirSentry</h1>
+        <p style={{ opacity: 0.8 }}>
+          Industrial Pollution Intelligence Dashboard — Delhi NCR
+        </p>
+      </div>
+
+      {/* Top Metrics Row */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: 20,
+        }}
+      >
+        {[
+          { title: "Current AQI", value: data.currentAQI },
+          {
+            title: "Rolling Average",
+            value: spike?.rollingAverage?.toFixed(1),
+          },
+          {
+            title: "Spike Ratio",
+            value: spikeRatio ? `${spikeRatio}x` : "—",
+          },
+        ].map((item, index) => (
+          <div
+            key={index}
+            style={{
+              background: "rgba(255,255,255,0.08)",
+              padding: 25,
+              borderRadius: 14,
+              backdropFilter: "blur(10px)",
+            }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+            <p style={{ opacity: 0.7 }}>{item.title}</p>
+            <h2 style={{ fontSize: 28, marginTop: 10 }}>{item.value}</h2>
+          </div>
+        ))}
+      </div>
+
+      {/* Spike + Classification Row */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 20,
+          marginTop: 30,
+        }}
+      >
+        {/* Spike Card */}
+        <div
+          style={{
+            background: spike?.isSpike
+              ? "rgba(255,0,0,0.15)"
+              : "rgba(0,255,100,0.15)",
+            padding: 30,
+            borderRadius: 14,
+            backdropFilter: "blur(10px)",
+          }}
+        >
+          <h2 style={{ marginBottom: 10 }}>
+            {spike?.isSpike
+              ? "Pollution Spike Detected"
+              : "No Active Spike"}
+          </h2>
+          <p style={{ opacity: 0.8 }}>{spike?.reason}</p>
+        </div>
+
+        {/* Classification Card */}
+        <div
+          style={{
+            background: "rgba(255,255,255,0.08)",
+            padding: 30,
+            borderRadius: 14,
+            backdropFilter: "blur(10px)",
+          }}
+        >
+          <h2 style={{ color: labelColor, marginBottom: 10 }}>
+            {classification.label}
+          </h2>
+
+          <p>Confidence: {classification.confidence}%</p>
+
+          <div
+            style={{
+              height: 12,
+              background: "rgba(255,255,255,0.2)",
+              borderRadius: 6,
+              marginTop: 10,
+            }}
+          >
+            <div
+              style={{
+                width: `${classification.confidence}%`,
+                height: "100%",
+                background: labelColor,
+                borderRadius: 6,
+              }}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
+
+          <div style={{ marginTop: 20, opacity: 0.8 }}>
+            <p>Industrial: {classification.industrialScore}</p>
+            <p>Vehicular: {classification.vehicularScore}</p>
+            <p>Regional: {classification.regionalScore}</p>
+            <p>Agricultural: {classification.farmScore}</p>
+          </div>
         </div>
-      </main>
-    </div>
+      </div>
+
+      {/* Map Section */}
+      <div style={{ marginTop: 40 }}>
+        <MapView />
+      </div>
+    </main>
   );
 }
