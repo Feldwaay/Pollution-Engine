@@ -1,0 +1,265 @@
+STAGE 1 — REQUIREMENT FREEZE (Non-Negotiable)
+
+Before coding a single line:
+
+1. Define Final Scope
+
+Point-based station classification only
+
+3 cause categories + Mixed + Uncertain
+
+Wind-aware inference
+
+Citizen reporting (basic)
+
+Interactive map
+
+Dashboard summary
+
+No feature creep.
+
+2. Define Technical Decisions (Lock Them)
+
+Framework: Next.js
+
+Database: Supabase (PostgreSQL)
+
+Map: Leaflet
+
+Charts: Chart.js
+
+Hosting: Vercel
+
+Decision fatigue kills speed. Lock it.
+
+
+
+STAGE 2 — SYSTEM DESIGN (Professional Level)
+A. Data Model Finalization
+
+You must:
+
+Identify all entities
+
+Define relationships
+
+Define indexes
+
+Define timestamp handling
+
+Define data retention policy
+
+Deliverable:
+ER Diagram.
+
+B. Classification Engine Spec
+
+You must:
+
+Define exact formula weights
+
+Define wind modifier thresholds
+
+Define spike detection logic
+
+Define classification thresholds
+
+Define confidence calculation
+
+Deliverable:
+Written algorithm document.
+
+No coding before this exists.
+
+C. API Integration Plan
+
+For each external source:
+
+Authentication method
+
+Rate limits
+
+Response structure
+
+Error handling plan
+
+Fallback strategy
+
+Deliverable:
+Data ingestion blueprint.
+
+
+STAGE 3 — CORE BACKEND BUILD
+1. Project Setup
+
+Environment variables
+
+Database connection
+
+Folder structure
+
+Logging system
+
+2. Data Ingestion Services
+
+Separate services:
+
+AQI Fetcher
+
+Weather Fetcher
+
+Traffic Fetcher
+
+Each must:
+
+Validate response
+
+Normalize data
+
+Store to DB
+
+Handle failure gracefully
+
+3. Spike Detection Service
+
+Rolling average logic
+
+Threshold logic
+
+Event generation
+
+Store events in DB
+
+4. Classification Engine
+
+Pure function module:
+
+Takes station snapshot
+
+Outputs structured classification object
+
+Unit-test this.
+
+5. Event Pipeline
+
+Flow:
+
+New AQI →
+Check spike →
+If spike → classify →
+Store classification →
+Expose via API
+
+
+STAGE 4 — FRONTEND BUILD
+1. Map Page
+
+Must include:
+
+Station markers
+
+Color-coded classification badges
+
+Wind arrow visualization
+
+Popup with metrics
+
+Must handle:
+
+Loading state
+
+Error state
+
+2. Dashboard Page
+
+Include:
+
+Classification distribution chart
+
+AQI trend graph
+
+Recent event list
+
+Confidence indicators
+
+3. Citizen Reporting
+
+Features:
+
+Form validation
+
+Geolocation auto-detect
+
+Media upload handling
+
+Voting logic
+
+Credibility scoring
+
+
+STAGE 5 — VALIDATION & EDGE CASES
+
+You must test:
+
+Low wind scenario
+
+No industrial alignment
+
+Multiple station spike
+
+High traffic spike
+
+Missing API response
+
+Network failure
+
+
+STAGE 6 — UI POLISH
+
+Best standard means:
+
+Consistent color system
+
+Clean typography
+
+Clear legend on map
+
+Explanation modal for classification logic
+
+Professional loading indicators
+
+No default ugly buttons.
+
+
+STAGE 7 — DEMO PREPARATION
+
+You need:
+
+Pre-loaded demo data
+
+At least one industrial event
+
+One vehicular event
+
+One regional event
+
+One stagnation event
+
+You control the narrative.
+
+
+STAGE 8 — DOCUMENTATION
+
+Prepare:
+
+Architecture diagram
+
+Data flow diagram
+
+Classification explanation slide
+
+Limitations slide
+
+Future scope slide
+
+If you cannot explain it, you don’t own it.
